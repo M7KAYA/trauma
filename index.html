@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trauma</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #3498db 0%, #6dd5fa 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
+      #theme-toggle {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        padding: 8px 14px;
+        font-size: 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: #2980b9;
+        color: white;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease;
+        z-index: 1000;
+      }
+
+      #theme-toggle:hover {
+        background-color: #1c5980;
+      }
+
+      .container {
+        width: 420px;
+        background: #ffffff;
+        padding: 30px 25px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      #question-text {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #333;
+        padding: 14px 20px;
+        background-color: #e3f2fd;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+        user-select: none;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .btn-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 15px;
+      }
+
+      button {
+        padding: 12px;
+        font-size: 16px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        background-color: #3498db;
+        color: white;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+      }
+
+      button:hover {
+        background-color: #2980b9;
+        transform: scale(1.02);
+      }
+
+      button:disabled {
+        background-color: #bdc3c7;
+        cursor: not-allowed;
+      }
+
+      .correct,
+      .correct:hover {
+        background-color: #2ecc71 !important;
+      }
+
+      .wrong,
+      .wrong:hover {
+        background-color: #e74c3c !important;
+      }
+
+      .answer-btn:last-of-type {
+        margin-bottom: 10px;
+      }
+
+      #question-number {
+        margin-bottom: 15px;
+        font-size: 16px;
+        color: #666;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      #result-box {
+        margin-top: 20px;
+        font-size: 20px;
+        font-weight: bold;
+        color: #2c3e50;
+        padding: 12px;
+        background-color: #dfefff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .hide {
+        display: none;
+      }
+
+      body.dark {
+        background: linear-gradient(135deg, #181818 0%, #0c0c0c 100%);
+        color: #ddd;
+      }
+
+      body.dark .container {
+        background: #1c1c1c;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      }
+
+      body.dark #question-text {
+        background-color: #353535;
+        color: #f0f0f0;
+        box-shadow: 0 5px 1px rgba(70, 130, 180, 0.5);
+      }
+
+      body.dark #question-number {
+        color: #bbb;
+      }
+
+      body.dark #result-box {
+        background-color: #3a3a3a;
+        color: #eee;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      }
+
+      body.dark button {
+        background-color: #1b4f72;
+      }
+
+      body.dark button:hover {
+        background-color: #1c5980;
+      }
+
+      body.dark button:disabled {
+        background-color: #555;
+      }
+
+      body.dark .correct,
+      body.dark .correct:hover {
+        background-color: #27ae60;
+      }
+
+      body.dark .wrong,
+      body.dark .wrong:hover {
+        background-color: #c0392b;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="theme-toggle">Dark mode</button>
+
+    <div class="container">
+      <h2 id="quiz-title">Trauma</h2>
+
+      <div id="start-box">
+        <button id="start-btn">Start</button>
+      </div>
+
+      <div id="quiz-box" class="hide">
+        <div id="question-number"></div>
+        <div id="question-text"></div>
+        <div id="answer-buttons" class="btn-grid"></div>
+        <button id="next-btn" disabled>Next</button>
+      </div>
+
+      <div id="result-box" class="hide">
+        <h3>Your Score</h3>
+        <p id="score-text"></p>
+        <button id="try-again-btn">Try Again</button>
+      </div>
+    </div>
+
+    <script>
+      const allQuestions = [
+        // Book Questions
+        {
+          question:
+            "The nurse is triaging four clients injured in a train derailment. Which client should receive priority treatment?",
+          options: [
+            "A 42-year-old with dyspnea and chest asymmetry",
+            "A 17-year-old with a fractured arm",
+            "A 4-year-old with facial lacerations",
+            "A 30-year-old with blunt abdominal trauma",
+          ],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "Direct pressure to a deep laceration on the client's lower leg has failed to stop the bleeding. The nurse's next action should be to:",
+          options: [
+            "Place a tourniquet proximal to the laceration",
+            "Elevate the leg above the level of the heart",
+            "Cover the laceration and apply an ice compress",
+            "Apply pressure to the femoral artery",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "The emergency room staff is practicing for its annual disaster drill. According to disaster triage, which of the following four clients would be cared for last?",
+          options: [
+            "A client with a pneumothorax",
+            "A client with 70%, full thickness burns",
+            "A client with fractures of the tibia and fibula",
+            "A client with smoke inhalation injuries",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "A trauma patient presents with a GCS score of 8, hypotension, and a distended abdomen. What is the most likely cause of their condition?",
+          options: [
+            "Traumatic brain injury",
+            "Hemorrhagic shock",
+            "Spinal cord injury",
+            "Tension pneumothorax",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "On primary assessment, the driver was found to be unresponsive, not breathing well, and bleeding was running. What is the first resuscitation intervention to be performed?",
+          options: [
+            "Apply pressure to the bleeding",
+            "Carry out artificial respirations",
+            "Clear the airway",
+            "Place a cervical collar",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "A motor vehicle accident patient arrives and is in need of airway management. He is wearing a cervical collar (c-collar). What is the appropriate way to establish an airway?",
+          options: [
+            "Perform jaw thrust maneuver with a C-collar on to open the airway.",
+            "Head tilt, chin lift technique",
+            "Put oral airway aggressively.",
+            "Remove the Collar until clear airway.",
+          ],
+          correctIndex: 0,
+        },
+        {
+          question: "The best prognostic factor for head injury is:",
+          options: ["Glasgow coma scale", "Age", "Mode of injury", "CT"],
+          correctIndex: 0,
+        },
+        {
+          question: "What are the minimum and maximum possible values of GCS?",
+          options: [
+            "Minimum = 0, Maximum = 13",
+            "Minimum = 0, Maximum = 15",
+            "Minimum = 3, Maximum = 15",
+            "Minimum = 3, Maximum = 18",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "Which of the following statements about head injuries is/are false?",
+          options: [
+            "The majority of deaths from auto accidents are due to head injuries.",
+            "Head injury alone often produces a shock.",
+            "A rapid and complete neurologic examination is part of the initial evaluation of the trauma patient.",
+            "Optimizing arterial oxygenation is part of initial therapy.",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is the most appropriate initial step in managing a trauma patient according to the ABCDE approach?",
+          options: [
+            "Administer pain medication",
+            "Ensure adequate breathing and ventilation",
+            "Perform a detailed neurological examination",
+            "Apply a splint to a fractured limb",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is the most appropriate initial imaging study for a hemodynamically unstable trauma patient with blunt abdominal trauma?",
+          options: [
+            "CT scan of the abdomen",
+            "Diagnostic peritoneal lavage",
+            "Focused Assessment with Sonography for Trauma (FAST)",
+            "X-ray of the abdomen",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "During the primary survey of a trauma patient, you notice paradoxical chest movement. What is the most likely diagnosis?",
+          options: [
+            "Flail chest",
+            "Tension pneumothorax",
+            "Hemothorax",
+            "Pulmonary contusion",
+          ],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "During the primary survey of a trauma patient, a large air collection in the pleural space compromises respiration and cardiac function. What is the most likely diagnosis?",
+          options: [
+            "Flail chest",
+            "Tension pneumothorax",
+            "Hemothorax",
+            "Pulmonary contusion",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "During the primary survey of a trauma patient, you notice paradoxical chest movement. What is the most likely diagnosis?",
+          options: [
+            "Flail chest",
+            "Tension pneumothorax",
+            "Hemothorax",
+            "Pulmonary contusion",
+          ],
+          correctIndex: 0,
+        },
+
+        // Questions
+        {
+          question: "What is the first priority in managing a trauma patient?",
+          options: [
+            "Administer pain medication",
+            "Ensure airway patency and cervical spine protection",
+            "Start intravenous fluids",
+            "Perform a neurological exam",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which maneuver is safest for opening the airway in a patient with suspected cervical spine injury?",
+          options: [
+            "Head-tilt chin-lift",
+            "Jaw-thrust",
+            "Neck extension",
+            "Inserting an oral airway",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient presents with noisy breathing, tracheal tugging, and intercostal recession. What is the most likely cause?",
+          options: [
+            "Hypovolemic shock",
+            "Upper airway obstruction",
+            "Cardiac tamponade",
+            "Flail chest",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question: "What is the immediate treatment for a patient with apnea?",
+          options: [
+            "Administer 100% oxygen via nasal cannula",
+            "Perform bag-valve-mask ventilation",
+            "Apply a cervical collar",
+            "Start IV crystalloids",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is NOT a sign of inadequate ventilation?",
+          options: [
+            "Cyanosis",
+            "Bilateral breath sounds",
+            "Increased respiratory effort",
+            "Decreased oxygen saturation",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient with a head injury requires intubation. What precaution is mandatory?",
+          options: [
+            "Administer ketamine for sedation",
+            "Apply cricoid pressure",
+            "Assume cervical spine injury and immobilize",
+            "Use halothane for anesthesia",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "Which of the following is a life-threatening chest injury?",
+          options: [
+            "Simple rib fracture",
+            "Tension pneumothorax",
+            "Mild lung contusion",
+            "Subcutaneous emphysema",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient has absent breath sounds on the left side, hypotension, and tracheal deviation. What is the most likely diagnosis?",
+          options: [
+            "Hemothorax",
+            "Tension pneumothorax",
+            "Cardiac tamponade",
+            "Flial chest",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is contraindicated in a patient with severe head injury?",
+          options: ["Ketamine", "Vasoactive", "Morphine", "Suxamethonium"],
+          correctIndex: 0,
+        },
+
+        {
+          question: "What is the first sign of hypovolemic shock?",
+          options: ["Hypotension", "Tachycardia", "Oliguria", "Confusion"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient has lost 1,800 mL of blood. According to the ATLS classification, what class of hemorrhage is this?",
+          options: ["Class I", "Class II", "Class III", "Class IV"],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "What is the initial fluid of choice for hypovolemic shock?",
+          options: [
+            "Colloids",
+            "Blood transfusion",
+            "Crystalloids",
+            "Hypertonic saline",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "A patient with hemorrhagic shock has a blood pressure of 70/40 mmHg. What is the most appropriate next step?",
+          options: [
+            "Administer vasopressors",
+            "Rapid fluid resuscitation and blood transfusion",
+            "Perform a FAST ultrasound",
+            "Elevate the legs",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is NOT a symptom of hypovolemic shock?",
+          options: [
+            "Bradycardia",
+            "Cold, clammy skin",
+            "Thirst",
+            "Decreased urine output",
+          ],
+          correctIndex: 0,
+        },
+        {
+          question: "What is the 3:1 rule in fluid resuscitation?",
+          options: [
+            "3 mL of crystalloid for every 1 mL of blood lost",
+            "3 units of blood for every 1 L of crystalloid",
+            "3 mL of colloid for every 1 mL of blood lost",
+            "3 L of saline before blood transfusion",
+          ],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "A trauma patient has a distended abdomen and hypotension. What is the most likely cause?",
+          options: [
+            "Cardiac tamponade",
+            "Hemorrhagic shock",
+            "Flail chest",
+            "Tension pneumothorax",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is the most reliable indicator of adequate tissue perfusion?",
+          options: [
+            "Low blood pressure",
+            "High Heart rate",
+            "Normal Urine output",
+            "Low Respiratory rate",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question: "What is the primary goal in managing hypovolemic shock?",
+          options: [
+            "Administer pain relief",
+            "Restore circulating volume and oxygen delivery",
+            "Perform immediate surgery",
+            "Stop bleeding",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following drugs is contraindicated in a patient with major burns?",
+          options: [
+            "Morphine",
+            "Suxamethonium (Succinylcholine)",
+            "Ketamine",
+            "Fentanyl",
+          ],
+          correctIndex: 1,
+        },
+
+        {
+          question:
+            "What is the minimum possible Glasgow Coma Scale (GCS) score?",
+          options: ["0", "3", "5", "8"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient has a GCS of 6. What is the most appropriate action?",
+          options: [
+            "Administer oral pain medication",
+            "Intubate for airway protection",
+            "Perform a CT scan immediately",
+            "Apply a cervical collar",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question: "Which of the following is NOT assessed in the GCS?",
+          options: [
+            "Eye opening",
+            "Motor response",
+            "Blood pressure",
+            "Verbal response",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question: 'What does the "A" in the AVPU scale stand for?',
+          options: ["Airway", "Alert", "Agitated", "Asleep"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A patient responds only to painful stimuli. What is their AVPU status?",
+          options: ["A", "V", "P", "U"],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "Which of the following is the best prognostic factor in head injury?",
+          options: [
+            "Age",
+            "Mode of injury",
+            "Glasgow Coma Scale",
+            "CT findings",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "A patient with a head injury has unequal pupils. What does this suggest?",
+          options: [
+            "Hypovolemic shock",
+            "Increased intracranial pressure",
+            "Spinal cord injury",
+            "Hypoxia",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "What is the most appropriate initial step in managing a trauma patient with a GCS of 7?",
+          options: [
+            "Administer IV fluids",
+            "Secure the airway",
+            "Perform a secondary survey",
+            "Apply a splint",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient is unresponsive to voice but opens eyes to pain. What is their GCS eye-opening score?",
+          options: ["1", "2", "3", "4"],
+          correctIndex: 1,
+        },
+
+        {
+          question: "What is the AMPLE history used for?",
+          options: [
+            "Airway assessment",
+            "Definitive care",
+            "Secondary survey",
+            "Primary survey",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question: "Which of the following is part of the secondary survey?",
+          options: [
+            "Airway assessment",
+            "Head-to-toe examination",
+            "Immediate hemorrhage control",
+            "Intubation",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient has a flail chest. What is the most appropriate initial management?",
+          options: [
+            "Needle decompression",
+            "Positive pressure ventilation",
+            "Administer ketamine",
+            "Apply a chest tube",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "What is the most appropriate imaging for a hemodynamically unstable trauma patient with abdominal trauma?",
+          options: ["CT scan", "FAST ultrasound", "X-ray", "MRI"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is NOT a '7 ways to die in trauma'?",
+          options: [
+            "Hypoxia",
+            "Hypoglycemia",
+            "Hypovolemia",
+            "Cardiac tamponade",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient has paradoxical chest movement. What is the most likely diagnosis?",
+          options: [
+            "Tension pneumothorax",
+            "Flail chest",
+            "Hemothorax",
+            "Pulmonary contusion",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question: "What is the definitive treatment for cardiac tamponade?",
+          options: [
+            "Needle decompression",
+            "Pericardiocentesis",
+            "Chest tube insertion",
+            "Thoracotomy",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is a key principle in trauma management?",
+          options: [
+            "Delayed treatment for stable patients",
+            "Early aggressive treatment",
+            "Avoid intubation in head injuries",
+            "Limit fluid resuscitation",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A trauma patient requires urgent surgery. What is the priority before transfer?",
+          options: [
+            "Complete secondary survey",
+            "Stabilize airway, breathing, and circulation",
+            "Administer antibiotics",
+            "Obtain informed consent",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "What is the most common cause of trauma death?",
+          options: [
+            "Airway obstruction",
+            "Liver laceration",
+            "Infection",
+            "Spinal cord injury",
+          ],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "A trauma patient is unresponsive, not breathing, and bleeding. What is the first intervention?",
+          options: [
+            "Apply pressure to bleeding",
+            "Clear the airway",
+            "Start CPR",
+            "Administer fluids",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is the most appropriate initial step in trauma management?",
+          options: [
+            "Detailed neurological exam",
+            "Airway management",
+            "Administer pain medication",
+            "Control bleeding",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "In a patient with hypovolemic shock, which of the following medications is used to support myocardial contractility?",
+          options: [
+            "Halothane",
+            "Ketamine",
+            "Inotropic drugs",
+            "All are true",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "Which of the following is contraindicated in a patient with major trauma?",
+          options: [
+            "Ketamine in hemorrhagic shock",
+            "Suxamethonium in burns",
+            "Halothane in eye injury",
+            "Fentanyl in fractures",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following hormones is most significantly increased during hypovolemic shock?",
+          options: [
+            "Insulin",
+            "Adrenaline (Epinephrine)",
+            "Thyroid hormone (T3/T4)",
+            "TSH (Thyroid Stimulating Hormone)",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "What is the primary effect of catecholamines released during hypovolemic shock?",
+          options: [
+            "Decreased heart rate",
+            "Vasodilation",
+            "Increased myocardial contractility",
+            "All are true",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "A trauma patient presents with signs of hypovolemic shock. Which of the following is the most critical initial intervention?",
+          options: [
+            "Administer 100% oxygen for inadequate pulmonary oxygenation",
+            "Control only central bleeding",
+            "Restore lost fluid volume with crystalloids",
+            "Support cardiac contractility with Halothane and Ketamine",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "Which finding would most likely be observed in Class III hemorrhage?",
+          options: [
+            "Blood pressure within normal limits",
+            "Respiratory rate of 12/min",
+            "Urine output 5–15 mL/hour",
+            "Confused and lethargic",
+          ],
+          correctIndex: 2,
+        },
+        {
+          question:
+            "For a Class IV hemorrhage patient, which intervention is immediately critical?",
+          options: [
+            "Oral rehydration",
+            "Crystalloids + blood transfusion",
+            "Ketamine administration",
+            "Cervical collar placement",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "A patient with Class II hemorrhage would typically exhibit:",
+          options: [
+            "Slightly anxious",
+            "Mild anxiety",
+            "Anxious and confused",
+            "Confused and lethargic",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is a common cause of unilateral inadequate ventilation in trauma patients?",
+          options: [
+            "Upper airway obstruction",
+            "Left-sided pneumothorax",
+            "Bilateral lung contusion",
+            "Leak between face and mask",
+          ],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Which of the following is a late sign of upper airway obstruction in a trauma patient?",
+          options: [
+            "Noisy breathing",
+            "Tracheal tugging",
+            "Use of accessory muscles",
+            "Apnea",
+          ],
+          correctIndex: 3,
+        },
+        {
+          question:
+            "What percentage of injured patients in the Emergency Department (ED) typically suffer from blunt trauma?",
+          options: [
+            "Over 30%",
+            "Over 70%",
+            "Over 50%",
+            "Over 90%",
+          ],
+          correctIndex: 3,
+        },
+        {
+          question:
+            "In the definitive care phase, which specialist is most likely to be involved for a traumatic brain injury?",
+          options: [
+            "Orthopedic surgeon",
+            "Neurosurgeon",
+            "Trauma surgeon",
+            "All are true",
+          ],
+          correctIndex: 3,
+        },
+        {
+          question:
+            "Which of the following refers to a plan for long-term recovery includes physical therapy and psychological support definitive care?",
+          options: [
+            "Surgical interventions",
+            "Specialist care",
+            "Continuous monitoring",
+            "Rehabilitation",
+          ],
+          correctIndex: 3,
+        },
+        {
+          question:
+            "Which of the following is the primary cause of low cardiac output (CO) in trauma patients?",
+          options: [
+            "Lung injuries",
+            "Intrathoracic pressure changes",
+            "Tissue hypoperfusion",
+            "Hypovolemia",
+          ],
+          correctIndex: 3,
+        },
+        {
+          question:
+            "When intubating a patient with a head injury, which of the following is NOT routinely recommended?",
+          options: [
+            "Assuming no cervical spine fracture",
+            "Applying a neck collar (C-collar)",
+            "Performing cricoid pressure",
+            "All of the answers are correct",
+          ],
+          correctIndex: 3,
+        },
+
+        {
+          question: "Sedatives and muscle relaxants should not be used if the patient is comatosed.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question: "The secondary survey follows the ABCDE approach.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Cervical spine immobilization is unnecessary if the patient is conscious.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question: "Ketamine is safe to use in patients with head injuries.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "The jaw-thrust maneuver is preferred in suspected cervical spine injury.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "Hypoxia is a common finding in severely injured trauma patients.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "A GCS of 8 or below requires intubation.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "The first sign of hypovolemic shock is hypotension.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "Crystalloids are the initial fluid of choice in hemorrhage.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "Suxamethonium is safe in major burns.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question: "The AVPU scale assesses level of consciousness.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "In hypovolemic shock, tissue perfusion increases and oxygen demand decreases.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question:
+            "The FAST exam is used in hemodynamically unstable abdominal trauma.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "Head injury alone commonly causes shock.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question: "The secondary survey includes a head-to-toe examination.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "Hypothermia should be prevented in trauma patients.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "Cardiac tamponade presents with muffled heart sounds and hypotension.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "The 3:1 rule refers to blood transfusion ratios.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question: "A GCS of 15 indicates severe brain injury.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+        {
+          question: "The AMPLE history includes allergies and medications.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "Early aggressive treatment improves trauma outcomes.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "Hypovolemia is a leading cause of trauma death.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "A patient with a GCS of 3 is unresponsive.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question: "Ketamine increases intracranial pressure.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "The primary survey should be repeated if the patient deteriorates.",
+          options: ["True", "False"],
+          correctIndex: 0,
+        },
+        {
+          question:
+            "Before circulatory and respiratory problems are resolved, the secondary survey should be initiated.",
+          options: ["True", "False"],
+          correctIndex: 1,
+        },
+      ];
+
+      let currentQuestionIndex = 0;
+      let score = 0;
+
+      const startBtn = document.getElementById("start-btn");
+      const nextBtn = document.getElementById("next-btn");
+      const tryAgainBtn = document.getElementById("try-again-btn");
+      const quizBox = document.getElementById("quiz-box");
+      const startBox = document.getElementById("start-box");
+      const questionNumberElement = document.getElementById("question-number");
+      const questionText = document.getElementById("question-text");
+      const answerButtons = document.getElementById("answer-buttons");
+      const resultBox = document.getElementById("result-box");
+      const scoreText = document.getElementById("score-text");
+      const themeToggleBtn = document.getElementById("theme-toggle");
+
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      }
+
+      function isTrueFalseQuestion(questionObj) {
+        const opts = questionObj.options;
+        return (
+          opts.length === 2 && opts.includes("True") && opts.includes("False")
+        );
+      }
+
+      function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        shuffleArray(allQuestions);
+        startBox.classList.add("hide");
+        resultBox.classList.add("hide");
+        quizBox.classList.remove("hide");
+        setNextQuestion();
+      }
+
+      function setNextQuestion() {
+        resetState();
+        if (currentQuestionIndex < allQuestions.length) {
+          showQuestion(allQuestions[currentQuestionIndex]);
+        } else {
+          showResult();
+        }
+      }
+
+      function showQuestion(questionObj) {
+        questionNumberElement.textContent = `Question ${
+          currentQuestionIndex + 1
+        } of ${allQuestions.length}`;
+        questionText.textContent = questionObj.question;
+
+        const optionsWithFlag = questionObj.options.map((opt, i) => ({
+          text: opt,
+          isCorrect: i === questionObj.correctIndex,
+        }));
+
+        if (!isTrueFalseQuestion(questionObj)) {
+          shuffleArray(optionsWithFlag);
+        }
+
+        optionsWithFlag.forEach((option) => {
+          const button = document.createElement("button");
+          button.textContent = option.text;
+          button.classList.add("answer-btn");
+          button.addEventListener("click", () =>
+            selectAnswer(button, option.isCorrect)
+          );
+          answerButtons.appendChild(button);
+        });
+      }
+
+      function resetState() {
+        nextBtn.disabled = true;
+        answerButtons.innerHTML = "";
+      }
+
+      function selectAnswer(button, isCorrect) {
+        const buttons = answerButtons.querySelectorAll("button");
+        buttons.forEach((btn) => (btn.disabled = true));
+
+        if (isCorrect) {
+          button.classList.add("correct");
+          score++;
+        } else {
+          button.classList.add("wrong");
+          buttons.forEach((btn) => {
+            if (
+              btn.textContent ===
+              allQuestions[currentQuestionIndex].options[
+                allQuestions[currentQuestionIndex].correctIndex
+              ]
+            ) {
+              btn.classList.add("correct");
+            }
+          });
+        }
+
+        nextBtn.disabled = false;
+      }
+
+      function showResult() {
+        quizBox.classList.add("hide");
+        resultBox.classList.remove("hide");
+        scoreText.textContent = `${score} out of ${allQuestions.length}`;
+      }
+
+      // Theme toggle
+      themeToggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("dark");
+        themeToggleBtn.textContent = document.body.classList.contains("dark")
+          ? "Light mode"
+          : "Dark mode";
+      });
+
+      // Event listeners
+      startBtn.addEventListener("click", startQuiz);
+      nextBtn.addEventListener("click", () => {
+        currentQuestionIndex++;
+        setNextQuestion();
+      });
+      tryAgainBtn.addEventListener("click", startQuiz);
+    </script>
+  </body>
+</html>
