@@ -667,8 +667,7 @@
           correctIndex: 1,
         },
         {
-          question:
-            "What is the most common cause of trauma death?",
+          question: "What is the most common cause of trauma death?",
           options: [
             "Airway obstruction",
             "Liver laceration",
@@ -702,12 +701,7 @@
         {
           question:
             "In a patient with hypovolemic shock, which of the following medications is used to support myocardial contractility?",
-          options: [
-            "Halothane",
-            "Ketamine",
-            "Inotropic drugs",
-            "All are true",
-          ],
+          options: ["Halothane", "Ketamine", "Inotropic drugs", "All are true"],
           correctIndex: 2,
         },
         {
@@ -812,12 +806,7 @@
         {
           question:
             "What percentage of injured patients in the Emergency Department (ED) typically suffer from blunt trauma?",
-          options: [
-            "Over 30%",
-            "Over 70%",
-            "Over 50%",
-            "Over 90%",
-          ],
+          options: ["Over 30%", "Over 70%", "Over 50%", "Over 90%"],
           correctIndex: 3,
         },
         {
@@ -866,7 +855,8 @@
         },
 
         {
-          question: "Sedatives and muscle relaxants should not be used if the patient is comatosed.",
+          question:
+            "Sedatives and muscle relaxants should not be used if the patient is comatosed.",
           options: ["True", "False"],
           correctIndex: 1,
         },
@@ -925,7 +915,8 @@
           correctIndex: 0,
         },
         {
-          question: "In hypovolemic shock, tissue perfusion increases and oxygen demand decreases.",
+          question:
+            "In hypovolemic shock, tissue perfusion increases and oxygen demand decreases.",
           options: ["True", "False"],
           correctIndex: 1,
         },
@@ -977,8 +968,7 @@
           correctIndex: 0,
         },
         {
-          question:
-            "Hypovolemia is a leading cause of trauma death.",
+          question: "Hypovolemia is a leading cause of trauma death.",
           options: ["True", "False"],
           correctIndex: 0,
         },
@@ -1066,7 +1056,24 @@
         }));
 
         if (!isTrueFalseQuestion(questionObj)) {
-          shuffleArray(optionsWithFlag);
+          const fixedOptions = [
+            "All of the above",
+            "All are true",
+            "All are false",
+            "All are correct",
+            "None of the above",
+          ];
+          const fixedOptionIndex = optionsWithFlag.findIndex((option) =>
+            fixedOptions.includes(option.text.trim())
+          );
+
+          if (fixedOptionIndex !== -1) {
+            const fixedOption = optionsWithFlag.splice(fixedOptionIndex, 1)[0];
+            shuffleArray(optionsWithFlag);
+            optionsWithFlag.push(fixedOption);
+          } else {
+            shuffleArray(optionsWithFlag);
+          }
         }
 
         optionsWithFlag.forEach((option) => {
